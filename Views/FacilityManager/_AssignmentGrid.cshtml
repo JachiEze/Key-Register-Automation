@@ -1,0 +1,126 @@
+﻿@using KEYREGISTERAUTOMATION.Models.ViewModels
+@model AllAssignmentGrid
+
+<div class="users-grid-card">
+    <div class="d-flex align-items-center mb-2">
+        <div class="input-group input-group-sm" style="max-width: 475px;">
+            <input id="assignments-search"
+                   class="form-control"
+                   placeholder="Search with Requester IGG and Name, Delegate Name, Key ID and Status"
+                   value="@Model.Search" />
+        </div>
+    </div>
+
+    <div class="modal fade" id="viewAssignmentModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h6 class="modal-title">Assignment Information</h6>
+                    <button type="button" class="btn-close" id="btn-close-assignment-view" aria-label="Close"></button>
+                </div>
+                <div class="modal-body"
+                    <form id="view-assignment-form">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" id="view-id" name="Id" />
+                        <div><strong>Requester IGG:</strong> <span id="view-requesterigg"></span></div>
+                        <div><strong>Requester Name:</strong> <span id="view-requestername"></span></div>
+                        <div><strong>Department:</strong> <span id="view-department"></span></div>
+                        <div><strong>Division:</strong> <span id="view-division"></span></div>
+                        <div><strong>Collector Type:</strong> <span id="view-collectortype"></span></div>
+                        <div><strong>Delegate Name:</strong> <span id="view-delegatename"></span></div>
+                        <div><strong>Assignment Type:</strong> <span id="view-assignmenttype"></span></div>
+                        <div><strong>Status:</strong> <span id="view-status"></span></div>
+                        <div><strong>Key ID:</strong> <span id="view-keyid"></span></div>
+                        <div><strong>Date Requested:</strong> <span id="view-daterequested"></span></div>
+                        <div><strong>Duration:</strong> <span id="view-duration"></span></div>
+                        <div><strong>Due Date:</strong> <span id="view-duedate"></span></div>
+
+                        <div id="view-assignment-msg" class="mt-2 small text-danger d-none"></div>
+
+                        <div class="mt-3 d-flex justify-content-end">
+                            <button type="button"
+                                    id="btn-mark-returned"
+                                    class="btn btn-success btn-sm"
+                                    data-id="">
+                                Returned
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="table-responsive users-grid-wrap">
+        <table class="table table-bordered users-grid-table align-middle mb-0">
+            <thead>
+                <tr class="users-grid-head">
+                    <th>Requester IGG and Name</th>
+                    <th>Department</th>
+                    <th>Division</th>
+                    <th>Delegate</th>
+                    <th>Type</th>
+                    <th>Key Id</th>
+                    <th>Date Requested</th>
+                    <th>Duration</th>
+                    <th>Due Date</th>
+                    <th>Status</th>
+                    <th class="text-center">Action</th>
+                </tr>
+            </thead>
+            <tbody id="assignments-grid-body">
+                @if (Model.Assignments == null || Model.Assignments.Count == 0)
+                {
+                    <tr>
+                        <td colspan="11" class="text-center py-4 text-muted">
+                            No assignments found
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    foreach (var a in Model.Assignments)
+                    {
+                        var status = string.IsNullOrWhiteSpace(a.Status) ? "Issued" : a.Status;
+                        var badgeClass = status.Equals("Returned", StringComparison.OrdinalIgnoreCase)
+                        ? "bg-success"
+                        : "bg-warning text-dark";
+
+                        <tr>
+                            <td>@a.RequesterIGG - @a.RequesterName</td>
+                            <td>@a.Department</td>
+                            <td>@a.Division</td>
+                            <td>@(string.IsNullOrWhiteSpace(a.DelegateName) ? "-" : a.DelegateName)</td>
+                            <td>@a.AssignmentType</td>
+                            <td>@a.KeyId</td>
+                            <td>@(a.DateRequested.HasValue ? a.DateRequested.Value.ToString("dd-MMM-yyyy") : "-")</td>
+                            <td>@(a.Duration.HasValue ? a.Duration.Value.ToString() : "-")</td>
+                            <td>@(a.DueDate.HasValue ? a.DueDate.Value.ToString("dd-MMM-yyyy") : "-")</td>
+                            <td>@a.Status</td>
+                            <td class="text-center">
+                                <button class="btn btn-sm btn-info btn-view-assignment"
+                                        style="background-color:#0b74ff; border-color:#0b74ff; color: #ffffff"
+                                        data-id="@a.Id"
+                                        data-requesterigg="@a.RequesterIGG"
+                                        data-requestername="@a.RequesterName"
+                                        data-department="@a.Department"
+                                        data-division="@a.Division"
+                                        data-collectortype="@a.CollectorType"
+                                        data-delegatename="@(string.IsNullOrWhiteSpace(a.DelegateName) ? "-" : a.DelegateName)"
+                                        data-assignmenttype="@a.AssignmentType"
+                                        data-status="@status"
+                                        data-keyid="@a.KeyId"
+                                        data-daterequested="@(a.DateRequested.HasValue? a.DateRequested.Value.ToString("dd-MMM-yyyy") : "-")"
+                                        data-duration="@(a.Duration.HasValue? a.Duration.Value.ToString() : "-")"
+                                        data-duedate="@(a.DueDate.HasValue? a.DueDate.Value.ToString("dd-MMM-yyyy") : "-")">
+                                 View
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

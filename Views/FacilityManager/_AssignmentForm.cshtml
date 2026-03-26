@@ -1,0 +1,78 @@
+﻿@model KEYREGISTERAUTOMATION.Models.AssignmentRecord
+
+<form id="assignment-form" asp-action="CreateAssignment" asp-controller="FacilityManager" method="post">
+@Html.AntiForgeryToken()
+    <div class="d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+        <div class="card shadow-lg w-100" style="max-width: 700px;">
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Requester IGG</label>
+                        <div class="input-group">
+                            <input asp-for="RequesterIGG" id="RequesterIGG" class="form-control" />
+                            <button type="button" id="btn-search-requester" class="btn btn-outline-primary">
+                                Search
+                            </button>
+                        </div>
+                        <div id="requester-search-msg" class="text-danger small mt-1 d-none"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Requester Name</label>
+                        <input asp-for="RequesterName" class="form-control" readonly/>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Department</label>
+                        <input asp-for="Department" class="form-control" readonly/>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Division</label>
+                        <input asp-for="Division" class="form-control" readonly/>
+                    </div>
+                    <div class="col-md-6">
+                        <div>
+                            <input type="radio" asp-for="CollectorType" id="delegateRequester" value="Requester" checked />
+                            <label>Requester</label>
+                            <input type="radio" asp-for="CollectorType" id="delegateDelegate" value="Delegate" class="ms-3" />
+                            <label>Delegate</label>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div>
+                            <input type="radio" asp-for="AssignmentType" id="assignmentPermanent" value="Permanent" checked />
+                            <label>Permanent</label>
+                            <input type="radio" asp-for="AssignmentType" id="assignmentTemporary" value="Temporary" class="ms-3" />
+                            <label>Temporary</label>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Delegate Name</label>
+                        <input asp-for="DelegateName" id="delegateName" class="form-control" disabled/>
+                    </div>              
+                    <div class="col-md-6">
+                        <label class="form-label">Key ID</label>
+                        <input asp-for="KeyId" class="form-control" />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Date Requested</label>
+                        <input asp-for="DateRequested" id="DateRequested" type="date" class="form-control" value="@(Model.DateRequested?.ToString("yyyy-MM-dd") ?? DateTime.Today.ToString("yyyy-MM-dd"))" min="@DateTime.Today.ToString("yyyy-MM-dd")" max="@DateTime.Today.ToString("yyyy-MM-dd")" readonly />
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">Duration</label>
+                        <input asp-for="Duration" id="Duration" type="number" class="form-control" min="1" step="1" placeholder="Enter number of days" />
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">Due Date</label>
+                        <input asp-for="DueDate" id="DueDate" type="date" class="form-control" readonly />
+                    </div>
+                </div>
+                <div class="mt-4 text-center">
+                    <button type="submit" class="btn btn-success">
+                        Submit
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>

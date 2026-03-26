@@ -1,0 +1,161 @@
+@using KEYREGISTERAUTOMATION.Models.ViewModels
+@model AllKeysGrid
+
+<div class="users-grid-card">
+    <div class="d-flex align-items-center mb-2">
+        <div class="input-group input-group-sm" style="max-width: 300px;">
+            <input id="keys-search"
+                   class="form-control key-search"
+                   placeholder="Search with Key ID, Building, Floor and Room"
+                   value="@Model.Search" />
+        </div>
+        <button type="button" id="btn-show-add" class="btn btn-sm btn-primary ms-auto">
+            Add a new key
+        </button>
+    </div>
+
+    <div class="modal fade" id="addKeyModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h6 class="modal-title">Add a new key</h6>
+                    <button type="button" class="btn-close" id="btn-close-add" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="add-key-form" method="post" asp-action="AddKey" asp-controller="FacilityManager">
+                        @Html.AntiForgeryToken()
+                            <div class="row g-2">
+                                <div class="col-md-6">
+                                    <label class="form-label mb-1">Key Id</label>
+                                    <input name="KeyId" class="form-control" />
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label mb-1">Key Code</label>
+                                    <input name="KeyCode" class="form-control" />
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label mb-1">Building</label>
+                                    <select name="Building" id="buildingSelect" class="form-select">
+                                        <option value="">-- Select Building --</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label mb-1">Floor Number</label>
+                                    <select name="FloorNumber" id="floorSelect" class="form-select" disabled>
+                                        <option value="">-- Select Floor --</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mx-auto">
+                                    <label class="form-label mb-1">Room Number</label>
+                                    <select name="RoomNumber" id="roomSelect" class="form-select" disabled>
+                                        <option value="">-- Select Room --</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="mt-3 d-flex justify-content-end gap-2">
+                                <button type="submit" class="btn btn-success btn-sm">
+                                    Save
+                                </button>
+                            </div>
+                        <div id="add-key-msg" class="mt-2 small text-danger d-none"></div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="viewKeyModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h6 class="modal-title">Key Information</h6>
+                    <button type="button" class="btn-close" id="btn-close-key-view" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="view-key-form">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" id="key-view-id" name="Id" value="" />
+                        <div><strong>Key ID:</strong> <span id="view-keyid"></span></div>
+                        <div><strong>Key Code:</strong> <span id="view-keycode"></span></div>
+                        <div><strong>Building:</strong> <span id="view-building"></span></div>
+                        <div><strong>Floor:</strong> <span id="view-floor"></span></div>
+                        <div class="mt-2">
+                            <strong>Room:</strong>
+                            <select id="view-room-select" name="RoomNumber" class="form-select form-select-sm mt-1" disabled>
+                                <option value="">-- Select Room --</option>
+                            </select>
+                        </div>
+                        <div class="mt-3 d-flex justify-content-between">
+                            <button type="button"
+                                    id="btn-delete-key"
+                                    class="btn btn-danger btn-sm"
+                                    data-id="">
+                                Delete
+                            </button>
+                            <button type="button"
+                                    id="btn-save-key-room"
+                                    class="btn btn-success btn-sm">
+                                Save
+                            </button>
+                        </div>
+                        <div id="view-key-msg" class="mt-2 small text-danger d-none"></div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-responsive users-grid-wrap">
+        <table class="table table-bordered users-grid-table align-middle mb-0">
+            <thead>
+                <tr class="users-grid-head">
+                    <th>Key ID</th>
+                    <th>Key Code</th>
+                    <th>Building</th>
+                    <th>Floor Number</th>
+                    <th>Room Number</th>
+                    <th>Total Keys</th>
+                    <th>Available Keys</th>
+                    <th class="text-center">Action</th>
+                </tr>
+            </thead>
+            <tbody id="keys-grid-body">
+                @if (Model.Keys == null || Model.Keys.Count == 0)
+                {
+                    <tr>
+                        <td colspan="8" class="text-center py-4 text-muted">
+                            No keys found
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    foreach (var k in Model.Keys)
+                    {
+                        <tr>
+                            <td>@k.KeyId</td>
+                            <td>@k.KeyCode</td>
+                            <td>@k.Building</td>
+                            <td>@k.FloorNumber</td>
+                            <td>@k.RoomNumber</td>
+                            <td>@k.TotalNoofKeys</td>
+                            <td>@k.NoofKeysAvaialble</td>
+                            <td class="text-center">
+                                <button class="btn btn-sm btn-info btn-view-key"
+                                        style="background-color:#0b74ff; border-color:#0b74ff; color: #ffffff"
+                                        data-id="@k.Id"
+                                        data-keyid="@k.KeyId"
+                                        data-keycode="@k.KeyCode"
+                                        data-building="@k.Building"
+                                        data-floor="@k.FloorNumber"
+                                        data-room="@k.RoomNumber">
+                                 View
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

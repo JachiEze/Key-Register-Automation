@@ -1,0 +1,713 @@
+<div class="content">
+    <div id="facility-content" class="facility-content-slot"></div>
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            const container = document.getElementById("facility-content");
+
+            async function loadAssignmentForm() {
+                const html = await fetch("/FacilityManager/CreateAssignmentForm")
+                    .then(r => r.text());
+
+                container.innerHTML = html;
+
+                syncDelegateNameState();
+                syncAssignmentTypeState();
+                calculateDueDate();
+            }
+
+            function getCurrentFilters() {
+                return {
+                    search: container.querySelector("#keys-search")?.value?.trim() || ""
+                };
+            }
+
+            function syncDelegateNameState() {
+                const requesterRadio = container.querySelector("#delegateRequester");
+                const delegateRadio = container.querySelector("#delegateDelegate");
+                const delegateNameInput = container.querySelector("#delegateName");
+
+                if (!requesterRadio || !delegateRadio || !delegateNameInput) return;
+
+                if (delegateRadio.checked) {
+                    delegateNameInput.disabled = false;
+                    delegateNameInput.readOnly = false;
+                    delegateNameInput.focus();
+                } else {
+                    delegateNameInput.value = "";
+                    delegateNameInput.disabled = true;
+                    delegateNameInput.readOnly = true;
+                }
+            }
+
+            function formatDateToInput(date) {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, "0");
+                const day = String(date.getDate()).padStart(2, "0");
+                return `${year}-${month}-${day}`;
+            }
+
+            function calculateDueDate() {
+                const temporaryRadio = container.querySelector("#assignmentTemporary");
+                const dateRequestedInput = container.querySelector("#DateRequested");
+                const durationInput = container.querySelector("#Duration");
+                const dueDateInput = container.querySelector("#DueDate");
+
+                if (!temporaryRadio || !temporaryRadio.checked || !dateRequestedInput || !durationInput || !dueDateInput) {
+                    return;
+                }
+
+                const dateRequestedValue = dateRequestedInput.value;
+                const durationValue = parseInt(durationInput.value, 10);
+
+                if (!dateRequestedValue || isNaN(durationValue) || durationValue <= 0) {
+                    dueDateInput.value = "";
+                    return;
+                }
+
+                const parts = dateRequestedValue.split("-").map(Number);
+                const baseDate = new Date(parts[0], parts[1] - 1, parts[2]);
+
+                baseDate.setDate(baseDate.getDate() + durationValue);
+
+                dueDateInput.value = formatDateToInput(baseDate);
+            }
+
+            function syncAssignmentTypeState() {
+                const permanentRadio = container.querySelector("#assignmentPermanent");
+                const temporaryRadio = container.querySelector("#assignmentTemporary");
+
+                const dateRequestedInput = container.querySelector("#DateRequested");
+                const durationInput = container.querySelector("#Duration");
+                const dueDateInput = container.querySelector("#DueDate");
+
+                if (!permanentRadio || !temporaryRadio || !dateRequestedInput || !durationInput || !dueDateInput) return;
+
+                const today = formatDateToInput(new Date());
+
+                if (temporaryRadio.checked) {
+                    dateRequestedInput.disabled = false;
+                    durationInput.disabled = false;
+                    dueDateInput.disabled = false;
+
+                    dateRequestedInput.value = today;
+                    dateRequestedInput.min = today;
+                    dateRequestedInput.max = today;
+                    dateRequestedInput.readOnly = true;
+
+                    durationInput.readOnly = false;
+
+                    dueDateInput.readOnly = true;
+
+                    calculateDueDate();
+                } else {
+                    dateRequestedInput.value = "";
+                    durationInput.value = "";
+                    dueDateInput.value = "";
+
+                    dateRequestedInput.disabled = true;
+                    durationInput.disabled = true;
+                    dueDateInput.disabled = true;
+
+                    dateRequestedInput.readOnly = true;
+                    durationInput.readOnly = true;
+                    dueDateInput.readOnly = true;
+                }
+            }
+
+
+            function clearRequesterFields() {
+                const requesterName = container.querySelector("#RequesterName");
+                const department = container.querySelector("#Department");
+                const division = container.querySelector("#Division");
+                const msg = container.querySelector("#requester-search-msg");
+
+                if (requesterName) requesterName.value = "";
+                if (department) department.value = "";
+                if (division) division.value = "";
+
+                if (msg) {
+                    msg.textContent = "";
+                    msg.classList.add("d-none");
+                }
+            }
+
+            async function searchRequester() {
+                const iggInput = container.querySelector("#RequesterIGG");
+                const requesterName = container.querySelector("#RequesterName");
+                const department = container.querySelector("#Department");
+                const division = container.querySelector("#Division");
+                const msg = container.querySelector("#requester-search-msg");
+                const btn = container.querySelector("#btn-search-requester");
+
+                if (!iggInput || !requesterName || !department || !division) return;
+
+                const igg = iggInput.value?.trim();
+
+                clearRequesterFields();
+
+                if (!igg) {
+                    if (msg) {
+                        msg.textContent = "Please enter an IGG.";
+                        msg.classList.remove("d-none");
+                    }
+                    iggInput.focus();
+                    return;
+                }
+
+                if (btn) btn.disabled = true;
+
+                try {
+                    const resp = await fetch(`/FacilityManager/SearchRequester?igg=${encodeURIComponent(igg)}`);
+
+                    const data = await resp.json().catch(() => null);
+
+                    if (!resp.ok || !data?.ok) {
+                        if (msg) {
+                            msg.textContent = data?.message || "Requester not found.";
+                            msg.classList.remove("d-none");
+                        }
+                        return;
+                    }
+
+                    requesterName.value = data.name || "";
+                    department.value = data.department || "";
+                    division.value = data.division || "";
+
+                    if (msg) {
+                        msg.textContent = "";
+                        msg.classList.add("d-none");
+                    }
+                } catch {
+                    if (msg) {
+                        msg.textContent = "An error occurred while searching for the requester.";
+                        msg.classList.remove("d-none");
+                    }
+                } finally {
+                    if (btn) btn.disabled = false;
+                }
+            }
+
+            async function loadKeyGrid(filters = null) {
+                const f = filters ?? getCurrentFilters();
+                const qs = new URLSearchParams(f).toString();
+                const url = "/FacilityManager/AllKeysGrid" + (qs ? ("?" + qs) : "");
+
+                const html = await fetch(url).then(r => r.text());
+
+                const temp = document.createElement("div");
+                temp.innerHTML = html;
+
+                const newBody = temp.querySelector("#keys-grid-body");
+                const currentBody = container.querySelector("#keys-grid-body");
+
+                if (newBody && currentBody) {
+                    currentBody.innerHTML = newBody.innerHTML;
+                } else {
+                    container.innerHTML = html;
+                }
+            }
+
+            async function loadBuildings() {
+                const buildingSelect = container.querySelector("#buildingSelect");
+                if (!buildingSelect) return;
+
+                const res = await fetch("/FacilityManager/GetBuildings");
+                const buildings = await res.json();
+
+                buildingSelect.innerHTML = '<option value="">-- Select Building --</option>';
+
+                buildings.forEach(b => {
+                    const opt = document.createElement("option");
+                    opt.value = b;
+                    opt.textContent = b;
+                    buildingSelect.appendChild(opt);
+                });
+            }
+
+            function getCurrentAssignmentFilters() {
+                return {
+                    search: container.querySelector("#assignments-search")?.value?.trim() || ""
+                };
+            }
+
+            async function loadAssignmentGrid(filters = null) {
+                const f = filters ?? getCurrentAssignmentFilters();
+                const qs = new URLSearchParams(f).toString();
+                const url = "/FacilityManager/AllAssignmentsGrid" + (qs ? ("?" + qs) : "");
+
+                const html = await fetch(url).then(r => r.text());
+
+                const temp = document.createElement("div");
+                temp.innerHTML = html;
+
+                const newBody = temp.querySelector("#assignments-grid-body");
+                const currentBody = container.querySelector("#assignments-grid-body");
+
+                if (newBody && currentBody) {
+                    currentBody.innerHTML = newBody.innerHTML;
+                } else {
+                    container.innerHTML = html;
+                }
+            }
+
+            function getAssignmentViewModal() {
+                const modalEl = container.querySelector("#viewAssignmentModal");
+                if (!modalEl) return null;
+
+                return bootstrap.Modal.getOrCreateInstance(modalEl);
+            }
+
+
+            function init() {
+                const btn = document.getElementById("btnAllKeys");
+                const createBtn = document.getElementById("btnCreateAssignment");
+                const assignmentGridBtn = document.getElementById("btnFMAllAssignments");
+
+                btn?.addEventListener("click", () => {
+                    loadKeyGrid();
+                    document.querySelectorAll(".menu-link").forEach(b => b.classList.remove("active"));
+                    btn.classList.add("active");
+                });
+
+                createBtn?.addEventListener("click", () => {
+                    loadAssignmentForm();
+                    document.querySelectorAll(".menu-link").forEach(b => b.classList.remove("active"));
+                    createBtn.classList.add("active");
+                });
+
+                assignmentGridBtn?.addEventListener("click", () => {
+                    loadAssignmentGrid();
+                    document.querySelectorAll(".menu-link").forEach(b => b.classList.remove("active"));
+                    assignmentGridBtn.classList.add("active");
+                });
+
+                loadAssignmentGrid();
+
+                if (assignmentGridBtn) {
+                    document.querySelectorAll(".menu-link").forEach(b => b.classList.remove("active"));
+                    assignmentGridBtn.classList.add("active");
+                }
+            }
+
+
+            if (document.readyState === "loading") {
+                document.addEventListener("DOMContentLoaded", init);
+            } else {
+                init();
+            }
+
+            function getAddModal() {
+                const modalEl = container.querySelector("#addKeyModal");
+                if (!modalEl) return null;
+
+                return bootstrap.Modal.getOrCreateInstance(modalEl, {
+                    backdrop: true,
+                    keyboard: true,
+                    focus: true
+                });
+            }
+
+            function getViewModal() {
+                const modalEl = container.querySelector("#viewKeyModal");
+                if (!modalEl) return null;
+
+                return bootstrap.Modal.getOrCreateInstance(modalEl);
+            }
+
+            function resetAddKeyModal() {
+                const form = container.querySelector("#add-key-form");
+                if (form) form.reset();
+
+                const buildingSelect = container.querySelector("#buildingSelect");
+                const floorSelect = container.querySelector("#floorSelect");
+                const roomSelect = container.querySelector("#roomSelect");
+
+                if (buildingSelect) buildingSelect.value = "";
+
+                if (floorSelect) {
+                    floorSelect.innerHTML = '<option value="">-- Select Floor --</option>';
+                    floorSelect.disabled = true;
+                }
+
+                if (roomSelect) {
+                    roomSelect.innerHTML = '<option value="">-- Select Room --</option>';
+                    roomSelect.disabled = true;
+                }
+
+                const msg = container.querySelector("#add-key-msg");
+                if (msg) {
+                    msg.textContent = "";
+                    msg.classList.add("d-none");
+                }
+            }
+
+            container.addEventListener("change", async (e) => {
+
+                if (e.target.matches('input[name="CollectorType"]')) {
+                    syncDelegateNameState();
+                    return;
+                }
+
+                if (e.target.matches('input[name="AssignmentType"]')) {
+                    syncAssignmentTypeState();
+                    return;
+                }
+
+
+                const buildingSelect = container.querySelector("#buildingSelect");
+                const floorSelect = container.querySelector("#floorSelect");
+                const roomSelect = container.querySelector("#roomSelect");
+
+                if (!buildingSelect || !floorSelect || !roomSelect) return;
+
+                if (e.target === buildingSelect) {
+                    floorSelect.innerHTML = '<option value="">-- Select Floor --</option>';
+                    roomSelect.innerHTML = '<option value="">-- Select Room --</option>';
+                    roomSelect.disabled = true;
+
+                    if (!buildingSelect.value) {
+                        floorSelect.disabled = true;
+                        return;
+                    }
+
+                    const res = await fetch(`/FacilityManager/GetFloors?building=${buildingSelect.value}`);
+                    const floors = await res.json();
+
+                    floors.forEach(f => {
+                        const opt = document.createElement("option");
+                        opt.value = f;
+                        opt.textContent = f;
+                        floorSelect.appendChild(opt);
+                    });
+
+                    floorSelect.disabled = false;
+                }
+
+                if (e.target === floorSelect) {
+                    roomSelect.innerHTML = '<option value="">-- Select Room --</option>';
+
+                    if (!floorSelect.value) {
+                        roomSelect.disabled = true;
+                        return;
+                    }
+
+                    const res = await fetch(
+                        `/FacilityManager/GetRooms?building=${buildingSelect.value}&floor=${floorSelect.value}`
+                    );
+
+                    const rooms = await res.json();
+
+                    rooms.forEach(r => {
+                        const opt = document.createElement("option");
+                        opt.value = r;
+                        opt.textContent = r;
+                        roomSelect.appendChild(opt);
+                    });
+
+                    roomSelect.disabled = false;
+                }
+            });
+
+                container.addEventListener("click", async (e) => {
+                if (e.target.matches("#btn-search-requester")) {
+                    await searchRequester();
+                    return;
+                }
+
+                if (e.target.matches(".btn-view-key")) {
+                    const btn = e.target;
+
+                    container.querySelector("#view-keyid").textContent = btn.dataset.keyid;
+                    container.querySelector("#view-keycode").textContent = btn.dataset.keycode;
+                    container.querySelector("#view-building").textContent = btn.dataset.building;
+                    container.querySelector("#view-floor").textContent = btn.dataset.floor;
+
+                    container.querySelector("#key-view-id").value = btn.dataset.id;
+
+                    const deleteBtn = container.querySelector("#btn-delete-key");
+                    deleteBtn.dataset.id = btn.dataset.id;
+
+                    const building = btn.dataset.building;
+                    const floor = btn.dataset.floor;
+                    const currentRoom = btn.dataset.room;
+
+                    const roomSelect = container.querySelector("#view-room-select");
+                    roomSelect.innerHTML = '<option value="">-- Select Room --</option>';
+                    roomSelect.disabled = true;
+
+                    try {
+                        const res = await fetch(`/FacilityManager/GetRooms?building=${encodeURIComponent(building)}&floor=${encodeURIComponent(floor)}`);
+                        const rooms = await res.json();
+
+                        rooms.forEach(r => {
+                            const opt = document.createElement("option");
+                            opt.value = r;
+                            opt.textContent = r;
+                            roomSelect.appendChild(opt);
+                        });
+
+                        roomSelect.value = currentRoom || "";
+                        roomSelect.disabled = false;
+                    } catch {
+                        roomSelect.disabled = true;
+                    }
+
+                    const msg = container.querySelector("#view-key-msg");
+                    if (msg) {
+                        msg.textContent = "";
+                        msg.classList.add("d-none");
+                    }
+
+                    getViewModal()?.show();
+                    return;
+                }
+
+                if (e.target.matches("#btn-close-key-view")) {
+                    getViewModal()?.hide();
+                    return;
+                }
+
+                if (e.target.matches("#btn-show-add")) {
+                    await loadBuildings();
+                    getAddModal()?.show();
+                    return;
+                }
+
+                if (e.target.matches("#btn-delete-key")) {
+                const id = e.target.dataset.id;
+                if (!id) return;
+
+                const token = container
+                    .querySelector('#view-key-form input[name="__RequestVerificationToken"]')
+                    ?.value;
+
+                const resp = await fetch("/FacilityManager/DeleteKey", {
+                    method: "POST",
+                    headers: {
+                        "RequestVerificationToken": token
+                    },
+                    body: new URLSearchParams({ id })
+                });
+
+                if (!resp.ok) {
+                    const data = await resp.json().catch(() => null);
+                    const message = data?.message || "Failed to delete key.";
+
+                    const msg = container.querySelector("#view-key-msg");
+                    if (msg) {
+                        msg.textContent = message;
+                        msg.classList.remove("d-none");
+                    }
+
+                    return;
+                }
+
+                getViewModal()?.hide();
+                await loadKeyGrid(getCurrentFilters());
+                return;
+            }
+
+                if (e.target.matches("#btn-cancel-add") || e.target.matches("#btn-close-add")) {
+                    getAddModal()?.hide();
+                    return;
+                }
+
+                if (e.target.matches(".btn-view-assignment")) {
+                    const btn = e.target;
+
+                    container.querySelector("#view-id").value = btn.dataset.id;
+                    container.querySelector("#view-requesterigg").textContent = btn.dataset.requesterigg || "-";
+                    container.querySelector("#view-requestername").textContent = btn.dataset.requestername || "-";
+                    container.querySelector("#view-department").textContent = btn.dataset.department || "-";
+                    container.querySelector("#view-division").textContent = btn.dataset.division || "-";
+                    container.querySelector("#view-collectortype").textContent = btn.dataset.collectortype || "-";
+                    container.querySelector("#view-delegatename").textContent = btn.dataset.delegatename || "-";
+                    container.querySelector("#view-assignmenttype").textContent = btn.dataset.assignmenttype || "-";
+                    container.querySelector("#view-status").textContent = btn.dataset.status || "-";
+                    container.querySelector("#view-keyid").textContent = btn.dataset.keyid || "-";
+                    container.querySelector("#view-daterequested").textContent = btn.dataset.daterequested || "-";
+                    container.querySelector("#view-duration").textContent = btn.dataset.duration || "-";
+                    container.querySelector("#view-duedate").textContent = btn.dataset.duedate || "-";
+
+                    const returnedBtn = container.querySelector("#btn-mark-returned");
+                    returnedBtn.dataset.id = btn.dataset.id;
+                    returnedBtn.disabled = (btn.dataset.status || "").toLowerCase() === "returned";
+
+                    const msg = container.querySelector("#view-assignment-msg");
+                    if (msg) {
+                        msg.textContent = "";
+                        msg.classList.add("d-none");
+                    }
+
+                    getAssignmentViewModal()?.show();
+                    return;
+                }
+
+                if (e.target.matches("#btn-close-assignment-view")) {
+                    getAssignmentViewModal()?.hide();
+                    return;
+                }
+
+                if (e.target.matches("#btn-mark-returned")) {
+                    const id = e.target.dataset.id;
+                    if (!id) return;
+
+                    const token = container
+                        .querySelector('#view-assignment-form input[name="__RequestVerificationToken"]')
+                        ?.value;
+
+                    const resp = await fetch("/FacilityManager/ReturnAssignment", {
+                        method: "POST",
+                        headers: {
+                            "RequestVerificationToken": token
+                        },
+                        body: new URLSearchParams({ id })
+                    });
+
+                    if (!resp.ok) {
+                        const data = await resp.json().catch(() => null);
+                        const message = data?.message || "Failed to update assignment status.";
+
+                        const msg = container.querySelector("#view-assignment-msg");
+                        if (msg) {
+                            msg.textContent = message;
+                            msg.classList.remove("d-none");
+                        }
+
+                        return;
+                    }
+
+                    getAssignmentViewModal()?.hide();
+                    await loadAssignmentGrid(getCurrentAssignmentFilters());
+                    return;
+                }
+
+                if (e.target.matches("#btn-save-key-room")) {
+                    const id = container.querySelector("#key-view-id")?.value;
+                    const roomNumber = container.querySelector("#view-room-select")?.value;
+
+                    if (!id) return;
+
+                    if (!roomNumber) {
+                        const msg = container.querySelector("#view-key-msg");
+                        msg.textContent = "Please select a room.";
+                        msg.classList.remove("d-none");
+                        return;
+                    }
+
+                    const token = container
+                        .querySelector('#view-key-form input[name="__RequestVerificationToken"]')
+                        ?.value;
+
+                    const resp = await fetch("/FacilityManager/UpdateKeyRoom", {
+                        method: "POST",
+                        headers: {
+                            "RequestVerificationToken": token
+                        },
+                        body: new URLSearchParams({ id, roomNumber })
+                    });
+
+                    if (!resp.ok) {
+                        const data = await resp.json().catch(() => null);
+                        const message = data?.message || "Failed to update room.";
+
+                        const msg = container.querySelector("#view-key-msg");
+                        msg.textContent = message;
+                        msg.classList.remove("d-none");
+                        return;
+                    }
+
+                    getViewModal()?.hide();
+                    await loadKeyGrid(getCurrentFilters());
+                    return;
+                }
+            });
+
+
+            container.addEventListener("submit", async (e) => {
+                const form = e.target;
+
+                if (form.matches("#add-key-form")) {
+                    e.preventDefault();
+
+                    const formData = new FormData(form);
+
+                    const resp = await fetch(form.action, {
+                        method: "POST",
+                        body: formData
+                    });
+
+                    if (!resp.ok) {
+                        const data = await resp.json().catch(() => null);
+                        const message = data?.message || "Something went wrong.";
+
+                        const msg = container.querySelector("#add-key-msg");
+                        if (msg) {
+                            msg.textContent = message;
+                            msg.classList.remove("d-none");
+                        }
+
+                        return;
+                    }
+
+                    getAddModal()?.hide();
+                    await loadKeyGrid(getCurrentFilters());
+                    return;
+                }
+
+
+                if (form.matches("#assignment-form")) {
+                    e.preventDefault();
+
+                    const formData = new FormData(form);
+
+                    const resp = await fetch(form.action, {
+                        method: "POST",
+                        body: formData
+                    });
+
+                    if (!resp.ok) {
+                        const data = await resp.json().catch(() => null);
+                        alert(data?.message || "Failed to create assignment.");
+                        return;
+                    }
+
+                    const data = await resp.json().catch(() => null);
+
+                    alert(data?.message || "Assignment created successfully.");
+                    window.location.reload();
+                }
+
+            });
+
+            container.addEventListener("hidden.bs.modal", (e) => {
+                if (e.target && e.target.id === "addKeyModal") {
+                    resetAddKeyModal();
+                }
+            });
+
+            let t = null;
+            container.addEventListener("input", (e) => {
+                if (e.target.matches("#Duration")) {
+                    calculateDueDate();
+                    return;
+                }
+
+                if (e.target.matches("#keys-search")) {
+                    clearTimeout(t);
+                    t = setTimeout(() => loadKeyGrid(getCurrentFilters()), 250);
+                    return;
+                }
+
+                if (e.target.matches("#assignments-search")) {
+                    clearTimeout(t);
+                    t = setTimeout(() => loadAssignmentGrid(getCurrentAssignmentFilters()), 250);
+                    return;
+                }
+            });
+        })();
+    </script>
+}
