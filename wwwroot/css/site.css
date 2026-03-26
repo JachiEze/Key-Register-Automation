@@ -1,0 +1,126 @@
+:root {
+    --sidebar-width: 220px;
+    --sidebar-bg: #0b74ff;
+    --sidebar-hover: #002f6d;
+    --sidebar-text: #ffffff;
+    --sidebar-active-text: #000000;
+}
+
+.app-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: #ffffff;
+    border-bottom: 1px solid #e5e5e5;
+    z-index: 1000;
+}
+
+.app-sidebar {
+    width: var(--sidebar-width);
+    height: 100vh;
+    background: var(--sidebar-bg);
+    top: 60px;
+    bottom: 0;
+    padding: 0;
+}
+
+    .app-sidebar .nav {
+        padding: 10px 0;
+    }
+
+.menu-link {
+    background: transparent;
+    border: 0;
+    color: #ffffff;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    font-size: 0.85rem;
+    padding: 10px 18px;
+    margin: 0;
+    border-radius: 0;
+    transition: all 150ms ease;
+}
+
+    .menu-link .bi {
+        font-size: 0.95rem;
+        color: #ffffff;
+    }
+
+    .menu-link:hover {
+        background: var(--sidebar-hover);
+        color: #ffffff;
+    }
+
+        .menu-link:hover .bi {
+            color: #ffffff;
+        }
+
+    .menu-link.active {
+        background: #ffffff;
+        color: var(--sidebar-active-text);
+    }
+
+        .menu-link.active .bi {
+            color: var(--sidebar-active-text);
+        }
+
+.admin-content-slot {
+    padding: 24px;
+}
+
+.admin-empty {
+    color: #1784c7;
+    font-size: 28px;
+    text-align: center;
+    padding: 80px 0;
+}
+
+.users-grid-card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 18px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+}
+
+.users-grid-title {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 14px;
+    color: #0b74ff;
+}
+
+
+.users-grid-table {
+    border-collapse: collapse;
+    border: 1px solid #d9e2ec;
+}
+
+.users-grid-table th,
+.users-grid-table td {
+    vertical-align: middle;
+    padding: 12px 14px;
+    border: 1px solid #d9e2ec !important;
+}
+
+.users-grid-head th {
+    background: #f4f7fb;
+    font-weight: 700;
+    border: 1px solid #d9e2ec !important;
+}
+
+.users-grid-filters th {
+    background: #ffffff;
+    border-bottom: 1px solid #e7edf5;
+}
+
+.users-grid-filters .form-control {
+    border-radius: 8px;
+}
+
+.users-grid-table tbody tr td {
+    background-color: #ffffff;
+}
