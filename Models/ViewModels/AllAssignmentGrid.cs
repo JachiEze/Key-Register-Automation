@@ -1,4 +1,4 @@
-﻿using KEYREGISTERAUTOMATION.Models;
+using KEYREGISTERAUTOMATION.Models;
 
 namespace KEYREGISTERAUTOMATION.Models.ViewModels
 {
@@ -6,6 +6,7 @@ namespace KEYREGISTERAUTOMATION.Models.ViewModels
     {
         public string? Search { get; set; }
         public List<AssignmentRecord> Assignments { get; set; } = new List<AssignmentRecord>();
+        public List<IndividualKey> IndividualKeys { get; set; } = new List<IndividualKey>();
 
     }
 }
