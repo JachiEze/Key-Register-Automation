@@ -9,14 +9,16 @@ namespace KEYREGISTERAUTOMATION.Data
             : base(options)
         {
         }
+
         public DbSet<UserAccount> UserAccounts { get; set; }
-        public DbSet<AllKeyTags> KeyTags { get; set; }
+        public DbSet<Keys> AllKeys { get; set; }
         public DbSet<OfficeInfo> OfficeInfos { get; set; }
         public DbSet<Role> Roles { get; set; }
         public DbSet<AppUser> AppUsers { get; set; }
         public DbSet<VwStaff> vwstaff { get; set; }
         public DbSet<AssignmentRecord> AssignmentRecords { get; set; }
-
+        public DbSet<IndividualKey> IndividualKeys { get; set; }
+        public DbSet<EmailSettings> EmailSettings { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -27,7 +29,21 @@ namespace KEYREGISTERAUTOMATION.Data
                 entity.HasKey(e => e.IGG);
                 entity.ToView("VwStaff");
             });
-        }
 
+            modelBuilder.Entity<IndividualKey>()
+                    .HasOne(i => i.ParentKey)
+                    .WithMany(k => k.IndividualKeys)
+                    .HasForeignKey(i => i.ParentKeyId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<IndividualKey>()
+                .HasIndex(i => i.TagNumber)
+                .IsUnique();
+
+            modelBuilder.Entity<IndividualKey>()
+                .Property(i => i.Status)
+                .HasMaxLength(50);
+
+        }
     }
 }
