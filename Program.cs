@@ -1,8 +1,11 @@
-using System;
+using KEYREGISTERAUTOMATION.Data;
+using KEYREGISTERAUTOMATION.Models;
+using KEYREGISTERAUTOMATION.Services;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Negotiate;
 using Microsoft.EntityFrameworkCore;
-using KEYREGISTERAUTOMATION.Data;
-using Microsoft.AspNetCore.Authentication;
+using System;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,10 +21,10 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     }));
 
 builder.Services.AddAuthentication(NegotiateDefaults.AuthenticationScheme)
-    .AddNegotiate(options =>
+    .AddNegotiate();/*options =>
     {
         options.PersistKerberosCredentials = true;
-    });
+    });*/
 
 builder.Services.AddAuthorization(options =>
 {
@@ -30,12 +33,16 @@ builder.Services.AddAuthorization(options =>
 
     options.AddPolicy("FacilityManagerOnly",
         policy => policy.RequireRole("Facility Manager"));
-
-    options.AddPolicy("RequesterOnly",
-        policy => policy.RequireRole("Requester"));
 });
 
 builder.Services.AddScoped<IClaimsTransformation, ClaimsTransformer>();
+
+
+builder.Services.Configure<EmailSettings>(
+    builder.Configuration.GetSection("EmailSettings"));
+
+builder.Services.AddScoped<IEmailService, EmailService>();
+
 
 builder.Services.AddControllersWithViews();
 
