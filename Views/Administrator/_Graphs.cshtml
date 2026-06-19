@@ -1,0 +1,107 @@
+﻿@model KEYREGISTERAUTOMATION.Models.ViewModels.Graphs
+
+<div class="card-body">
+    <div class="users-grid-card graphs-page">
+        <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 align-items-lg-center mb-4">
+            <div>
+                <h5 class="mb-sm-0 text-dark text-decoration-underline text-start">
+                    Graphs
+                </h5>
+            </div>
+        </div>
+
+        <div class="graph-filter-section mb-4">
+            <div class="row g-3 align-items-end">
+                <div class="col-lg-5">
+                    <label>Floors</label>
+                    <div class="graph-floor-dropdown" id="graphFloorDropdown">
+                        <button type="button" class="graph-floor-toggle w-100" id="graphFloorToggle">
+                            <span class="graph-floor-label" id="graphFloorLabel">Select floor(s)</span>
+                            <i class="bi bi-chevron-down"></i>
+                        </button>
+
+                        <div class="graph-floor-menu" id="graphFloorMenu">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div class="d-flex gap-2">
+                                    <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none" id="graphSelectAllFloors">Select all</button>
+                                    <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none text-secondary" id="graphClearFloors">Clear</button>
+                                </div>
+                            </div>
+
+                            <div class="graph-floor-options">
+                                @foreach (var floor in Model.Floors)
+                                {
+                                    <label class="graph-floor-option">
+                                        <input type="checkbox" class="form-check-input graph-floor-checkbox" value="@floor" />
+                                        <span>Floor @floor</span>
+                                    </label>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 col-lg-2">
+                    <label for="graphStartDate">Start Date</label>
+                    <input type="date" id="graphStartDate" class="form-control" value="@Model.StartDate.ToString("yyyy-MM-dd")" />
+                </div>
+
+                <div class="col-md-6 col-lg-2">
+                    <label for="graphEndDate">End Date</label>
+                    <input type="date" id="graphEndDate" class="form-control" value="@Model.EndDate.ToString("yyyy-MM-dd")" />
+                </div>
+
+                <div class="col-lg-3">
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-primary graph-search-btn flex-fill" id="btnGraphSearch">
+                            <i class="bi bi-search me-1"></i>
+                            Search
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary graph-reset-btn" id="btnGraphReset">Reset</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="alert alert-danger mt-3 d-none" id="graphMessage"></div>
+        </div>
+
+        <div class="row g-3 mb-4">
+            <div class="col-md-6">
+                <div class="card graph-summary-card h-100">
+                    <div class="card-body p-4">
+                        <div class="graph-summary-text mb-2">Selected Floors</div>
+                        <div class="graph-summary-number" id="graphSelectedFloorsCount">0</div>
+                        <div class="graph-summary-text mt-2" id="graphSelectedFloorsText">No floor selected</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card graph-summary-card h-100">
+                    <div class="card-body p-4">
+                        <div class="graph-summary-text mb-2">Total Number of Temporary Collections</div>
+                        <div class="graph-summary-number" id="graphTotalCollections">0</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="graph-chart-section">
+            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-2 mb-3">
+                <div>
+                    <div class="graph-chart-meta" id="graphDateRangeText">Showing results for the selected time period.</div>
+                </div>
+            </div>
+
+            <div id="graphEmptyState" class="graph-empty-state show">
+                <i class="bi bi-bar-chart-line fs-1 mb-3"></i>
+                <h5 class="mb-2">No data to display yet</h5>
+                <div>Select one or more floors, review the date range, then click <strong>Search</strong>.</div>
+            </div>
+
+            <div class="graph-canvas-wrap">
+                <canvas id="temporaryKeyFrequencyChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>

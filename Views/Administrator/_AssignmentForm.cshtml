@@ -1,0 +1,110 @@
+﻿@model KEYREGISTERAUTOMATION.Models.AssignmentRecord
+
+<form id="assignment-form" asp-action="CreateAssignment" asp-controller="Administrator" method="post">
+@Html.AntiForgeryToken()
+    <div class="d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+        <div class="card shadow-lg w-100" style="max-width: 1000px;">
+            <div class="card-header bg-primary text-white text-center py-2">
+                <h5 class="mb-sm-0">Key Assignment</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">IGG</label>
+                        <input asp-for="RequesterIGG" id="RequesterIGG" class="form-control" autocomplete="off" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Name</label>
+                        <input asp-for="RequesterName" class="form-control text-muted" readonly />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Department</label>
+                        <input asp-for="Department" class="form-control text-muted" readonly />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Division</label>
+                        <input asp-for="Division" class="form-control text-muted" readonly />
+                    </div>
+                        <div class="col-12 d-none" id="requester-active-assignments-section">
+                          <div class="border rounded p-2 bg-light">
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered table-striped mb-0 w-100" id="requester-active-assignments-table">
+                                    <thead class="table-primary">
+                                        <tr>
+                                            <th>Building</th>
+                                            <th>Floor</th>
+                                            <th>Room</th>
+                                            <th>Assignment Type</th>
+                                            <th>Key Tag</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="requester-active-assignments-body">
+                                        <tr>
+                                            <td colspan="6" class="text-center text-muted">
+                                                No current assignments found.
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                          </div>
+                       </div>
+                    <div class="col-md-6">
+                        <div>
+                            <input type="radio" asp-for="CollectorType" id="delegateRequester" value="Requester" checked />
+                            <label>Requester</label>
+                            <input type="radio" asp-for="CollectorType" id="delegateDelegate" value="Delegate" class="ms-3" />
+                            <label>Delegate</label>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div>
+                            <input type="radio" asp-for="AssignmentType" id="assignmentPermanent" value="Permanent" checked />
+                            <label>Permanent</label>
+                            <input type="radio" asp-for="AssignmentType" id="assignmentTemporary" value="Temporary" class="ms-3" />
+                            <label>Temporary</label>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label">Delegate Name</label>
+                        <input asp-for="DelegateName" id="delegateName" class="form-control" disabled/>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Key Tag</label>
+                        <input asp-for="TagNumber" id="TagNumber" class="form-control" autocomplete="off"/>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Building</label>
+                        <input id="Building" class="form-control text-muted" readonly />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Floor Number</label>
+                        <input asp-for="FloorNumber" class="form-control text-muted" readonly />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Room Number</label>
+                        <input asp-for="RoomNumber" class="form-control text-muted" readonly />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Date Collected</label>
+                        <input asp-for="DateRequested" id="DateRequested" type="date" class="form-control" value="@(Model.DateRequested?.ToString("yyyy-MM-dd") ?? DateTime.Today.ToString("yyyy-MM-dd"))" min="@DateTime.Today.ToString("yyyy-MM-dd")" max="@DateTime.Today.ToString("yyyy-MM-dd")" readonly />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Duration</label>
+                        <input asp-for="Duration" id="Duration" type="number" class="form-control" min="1" step="1" placeholder="Enter number of days" />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Due Date</label>
+                        <input asp-for="DueDate" id="DueDate" type="date" class="form-control" readonly />
+                    </div>
+                </div>
+                <div class="mt-4 text-center">
+                    <button type="submit" class="btn btn-success">
+                        Submit
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
