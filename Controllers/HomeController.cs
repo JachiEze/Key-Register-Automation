@@ -35,9 +35,6 @@ public class HomeController : BaseController
             case "Facility Manager":
                 return RedirectToAction("Index", "FacilityManager");
 
-            case "Requester":
-                return RedirectToAction("Index", "Requester");
-
             default:
                 return View("AccessDenied");
         }
