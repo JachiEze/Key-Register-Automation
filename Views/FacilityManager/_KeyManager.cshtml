@@ -1,0 +1,195 @@
+﻿@using KEYREGISTERAUTOMATION.Models.ViewModels
+@model AllAssignmentGrid
+
+<div class="card-body">
+    <div class="users-grid-card">
+        <div class="card-header border-bottom-0 p-0 mb-3">
+            <h5 class="mb-0 text-dark text-decoration-underline text-start">Key Manager</h5>
+        </div>
+        <div class="modal fade" id="viewAssignmentModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary text-white">
+                        <h6 class="modal-title">Assignment Information</h6>
+                        <button type="button" class="btn-close" id="btn-close-assignment-view" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="view-assignment-form">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" id="view-id" name="Id" />
+
+                            <div><u><strong>Personal Information</strong></u></div>
+                            <div><strong>Name:</strong> <span id="view-requestername"></span>(<span id="view-requesterigg"></span>)</div>
+                            <div><strong>Department:</strong> <span id="view-department"></span></div>
+                            <div><strong>Division:</strong> <span id="view-division"></span></div>
+
+                            <div id="view-delegate-row">
+                                <strong>Delegate Name:</strong> <span id="view-delegatename"></span>
+                            </div>
+
+                            <div class="mt-4">
+                                <u><strong>Key Information</strong></u>
+                            </div>
+                            <div><strong>Key ID: </strong> <span id="view-keyid"></span></div>
+                            <div><strong>Key Tag: </strong> <span id="view-tagnumber"></span></div>
+                            <div><strong>Floor Number: </strong> <span id="view-floornumber"></span></div>
+                            <div><strong>Room Number: </strong> <span id="view-roomnumber"></span></div>
+                            <div><strong>Assignment Type:</strong> <span id="view-assignmenttype"></span></div>
+                            <div><strong>Status:</strong> <span id="view-status"></span></div>
+
+                            <div id="view-timeline-section" class="mt-4">
+                                <div>
+                                    <u><strong>Timeline</strong></u>
+                                </div>
+                                <div><strong>Date Collected:</strong> <span id="view-daterequested"></span></div>
+                                <div><strong>Duration:</strong> <span id="view-duration"></span></div>
+                                <div><strong>Due Date:</strong> <span id="view-duedate"></span></div>
+                            </div>
+
+                            <div id="view-comment-section" class="mt-4">
+                                <label for="view-comment" class="form-label"><strong>Comment:</strong></label>
+                                <textarea id="view-comment"
+                                          name="Comment"
+                                          class="form-control"
+                                          rows="3"></textarea>
+                            </div>
+
+                            <div id="view-assignment-msg" class="mt-2 small text-danger d-none"></div>
+
+                            <div class="mt-3 text-end">
+                                <button type="button"
+                                        id="btn-mark-returned"
+                                        class="btn btn-success btn-sm"
+                                        data-id="">
+                                    Return key
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-responsive users-grid-wrap">
+            <table id="assignmentsTable" class="table table-bordered table-striped users-grid-table align-middle mb-0">
+                <thead>
+                    <tr style="font-size:10px;" class="users-grid-head bg-primary">
+                        <th>Requester</th>
+                        <th>Department</th>
+                        <th>Delegate</th>
+                        <th>Key Tag</th>
+                        <th>Location</th>
+                        <th>Assignment Type</th>
+                        <th>Date Collected</th>
+                        <th>Duration</th>
+                        <th>Due Date</th>
+                        <th class="text-center">Status</th>
+                        <th class="text-center">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="assignments-grid-body">
+                    @if (Model.Assignments != null && Model.Assignments.Count > 0)
+                    {
+                        foreach (var a in Model.Assignments)
+                        {
+                            <tr style="font-size:10px;"
+                                data-assigned-on="@a.AssignedOn.ToString("yyyy-MM-dd")"
+                                data-assignment-type="@a.AssignmentType"
+                                data-status="@a.Status">
+
+                                <td>
+                                    @a.RequesterName<br />
+                                    <span style="font-size:8px;font:900;">@a.RequesterIGG</span>
+                                </td>
+
+                                <td>@a.Department</td>
+
+                                <td>
+                                    @(string.IsNullOrWhiteSpace(a.DelegateName) ? "-" : a.DelegateName)
+                                </td>
+
+                                <td>@a.TagNumber</td>
+
+                                <td>
+                                    @a.KeyId - Floor @a.FloorNumber - Room @a.RoomNumber
+                                </td>
+
+                                <td class="text-center">
+                                    @if (a.AssignmentType == "Permanent")
+                                    {
+                                        <span class="bg-black text-white text-center" style="border-radius:20%; padding:5px;">
+                                            @a.AssignmentType
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="bg-warning text-dark text-center" style="border-radius:20%; padding:5px;">
+                                            @a.AssignmentType
+                                        </span>
+                                    }
+                                </td>
+
+                                <td>
+                                    @(a.DateRequested.HasValue? a.DateRequested.Value.ToString("dd-MMM-yyyy") : "-")
+                                </td>
+
+                                <td>
+                                    @(a.Duration.HasValue? a.Duration.Value.ToString() : "-")
+                                </td>
+
+                                <td>
+                                    @(a.DueDate.HasValue? a.DueDate.Value.ToString("dd-MMM-yyyy") : "-")
+                                </td>
+
+                                <td class="text-center">
+                                    @if (a.Status == "Issued")
+                                    {
+                                        <span class="bg-secondary text-white text-center" style="border-radius:20%; padding:5px;">
+                                            @a.Status
+                                        </span>
+                                    }
+                                    else if (a.Status == "Overdue")
+                                    {
+                                        <span class="bg-danger text-white text-center" style="border-radius:20%; padding:5px;">
+                                            @a.Status
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="bg-success text-white text-center" style="border-radius:20%; padding:5px;">
+                                            @a.Status
+                                        </span>
+                                    }
+                                </td>
+
+                                <td class="text-center" style="font-size:10px">
+                                    <button class="btn btn-sm btn-info btn-view-assignment"
+                                            style="background-color:#0b74ff; border-color:#0b74ff; color:#ffffff; padding: 2px 8px; font-size: 12px;"
+                                            data-id="@a.Id"
+                                            data-requesterigg="@a.RequesterIGG"
+                                            data-requestername="@a.RequesterName"
+                                            data-department="@a.Department"
+                                            data-division="@a.Division"
+                                            data-collectortype="@a.CollectorType"
+                                            data-delegatename="@(string.IsNullOrWhiteSpace(a.DelegateName) ? "-" : a.DelegateName)"
+                                            data-tagnumber="@a.TagNumber"
+                                            data-keyid="@a.KeyId"
+                                            data-floornumber="@a.FloorNumber"
+                                            data-roomnumber="@a.RoomNumber"
+                                            data-assignmenttype="@a.AssignmentType"
+                                            data-status="@a.Status"
+                                            data-daterequested="@(a.DateRequested.HasValue? a.DateRequested.Value.ToString("dd-MMM-yyyy") : "-")"
+                                            data-duration="@(a.Duration.HasValue? a.Duration.Value.ToString() : "-")"
+                                            data-duedate="@(a.DueDate.HasValue? a.DueDate.Value.ToString("dd-MMM-yyyy") : "-")"
+                                            data-comment="@(a.Comment ?? "")">
+                                        Details
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,350 @@
+@using KEYREGISTERAUTOMATION.Models.ViewModels
+@model AllKeysGrid
+
+<div class="card-body">
+    <div class="users-grid-card">
+        <div class="card-header border-bottom-0 p-0">
+            <h5 class="mb-sm-0 text-dark text-decoration-underline text-start">Key Setup</h5>
+        </div>
+        <div class="modal fade" id="addKeyModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary text-white">
+                        <h6 class="modal-title" id="addKeyModalTitle">Add new key</h6>
+                        <button type="button" class="btn-close" id="btn-close-add" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="add-key-form" method="post" asp-action="AddKey" asp-controller="FacilityManager">
+                            @Html.AntiForgeryToken()
+
+                            <div class="row g-2">
+                                <div><u><strong>Building Information</strong></u></div>
+                                <div class="smart-combobox col-md-12" id="buildingCombo">
+                                    <label class="form-label"><strong>Building</strong></label>
+                                    <input type="hidden" name="Building" id="buildingValue" />
+                                    <input type="text"
+                                           id="buildingInput"
+                                           class="form-control smart-combobox-input"
+                                           placeholder="-- Select or type Building --"
+                                           autocomplete="off" />
+                                    <div class="smart-combobox-menu d-none" id="buildingMenu"></div>
+                                </div>
+                                <div class="smart-combobox col-md-12" id="floorCombo">
+                                    <label class="form-label"><strong>Floor</strong></label>
+                                    <input type="hidden" name="FloorNumber" id="floorValue" />
+                                    <input type="text"
+                                           id="floorInput"
+                                           class="form-control smart-combobox-input"
+                                           placeholder="-- Select or type Floor --"
+                                           autocomplete="off"
+                                           disabled />
+                                    <div class="smart-combobox-menu d-none" id="floorMenu"></div>
+                                </div>
+                                <div class="smart-combobox col-md-12" id="roomCombo">
+                                    <label class="form-label"><strong>Room</strong></label>
+                                    <input type="hidden" name="RoomNumber" id="roomValue" />
+                                    <input type="text"
+                                           id="roomInput"
+                                           class="form-control smart-combobox-input"
+                                           placeholder="-- Select or type Room --"
+                                           autocomplete="off"
+                                           disabled />
+                                    <div class="smart-combobox-menu d-none" id="roomMenu"></div>
+                                </div>
+                                <div class="mt-4">
+                                    <u><strong>Key Information</strong></u>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="smart-combobox" id="keyIdCombo">
+                                        <label class="form-label"><strong>Key Number</strong></label>
+                                        <input type="hidden" name="KeyId" id="keyIdValue" />
+                                        <input type="text"
+                                               id="keyIdInput"
+                                               class="form-control smart-combobox-input"
+                                               placeholder="-- Select or type Key Number --"
+                                               autocomplete="off" />
+                                        <div class="smart-combobox-menu d-none" id="keyIdMenu"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label"><strong>Number of keys to add</strong></label>
+                                    <strong>
+                                        <input id="numberOfKeysInput"
+                                               name="NumberOfKeys"
+                                               type="number"
+                                               class="form-control"
+                                               min="1"
+                                               max="10"
+                                               step="1"
+                                               value="1" />
+                                    </strong>
+                                    <div id="number-of-keys-msg" class="mt-1 small text-danger d-none"></div>
+                                </div>
+                                <div class="mt-4">
+                                    <u><strong>New Keys</strong></u>
+                                </div>
+                                <div class="col-12">
+                                    <strong>
+                                        <div id="individual-key-fields" class="row g-2">
+                                            <div class="col-md-6">
+                                                <label class="form-label mb-1">Key Tag 1 </label>
+                                                <input name="TagNumbers[0]" class="form-control" />
+                                            </div>
+                                        </div>
+                                    </strong>
+                                </div>
+                            </div>
+                            <div class="mt-3 d-flex justify-content-end gap-2">
+                                <button type="submit" class="btn btn-success btn-sm">
+                                    Save
+                                </button>
+                            </div>
+                            <div id="add-key-msg" class="mt-2 small text-danger d-none"></div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="updateKeyModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary text-white">
+                        <h6 class="modal-title" id="updateKeyModalTitle">Update this key</h6>
+                        <button type="button" class="btn-close" id="btn-close-update" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="update-key-form" method="post" asp-action="UpdateKey" asp-controller="FacilityManager">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" id="updateKeyRecordId" name="Id" />
+                            <div class="row g-2">
+                                <div><u><strong>Building Information</strong></u></div>
+
+                                <div class="smart-combobox col-md-12" id="updateBuildingCombo">
+                                    <label class="form-label"><strong>Building</strong></label>
+                                    <input type="hidden" name="Building" id="updateBuildingValue" />
+                                    <input type="text"
+                                           id="updateBuildingInput"
+                                           class="form-control smart-combobox-input"
+                                           placeholder="-- Select or type Building --"
+                                           autocomplete="off" />
+                                    <div class="smart-combobox-menu d-none" id="updateBuildingMenu"></div>
+                                </div>
+
+                                <div class="smart-combobox col-md-12" id="updateFloorCombo">
+                                    <label class="form-label"><strong>Floor</strong></label>
+                                    <input type="hidden" name="FloorNumber" id="updateFloorValue" />
+                                    <input type="text"
+                                           id="updateFloorInput"
+                                           class="form-control smart-combobox-input"
+                                           placeholder="-- Select or type Floor --"
+                                           autocomplete="off"
+                                           disabled />
+                                    <div class="smart-combobox-menu d-none" id="updateFloorMenu"></div>
+                                </div>
+
+                                <div class="smart-combobox col-md-12" id="updateRoomCombo">
+                                    <label class="form-label"><strong>Room</strong></label>
+                                    <input type="hidden" name="RoomNumber" id="updateRoomValue" />
+                                    <input type="text"
+                                           id="updateRoomInput"
+                                           class="form-control smart-combobox-input"
+                                           placeholder="-- Select or type Room --"
+                                           autocomplete="off"
+                                           disabled />
+                                    <div class="smart-combobox-menu d-none" id="updateRoomMenu"></div>
+                                </div>
+
+                                <div class="mt-4">
+                                    <u><strong>Key Information</strong></u>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="smart-combobox" id="updateKeyIdCombo">
+                                        <label class="form-label"><strong>Key Number</strong></label>
+                                        <input type="hidden" name="KeyId" id="updateKeyIdValue" />
+                                        <input type="text"
+                                               id="updateKeyIdInput"
+                                               class="form-control smart-combobox-input"
+                                               placeholder="-- Select or type Key Number --"
+                                               autocomplete="off" />
+                                        <div class="smart-combobox-menu d-none" id="updateKeyIdMenu"></div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label"><strong>Number of keys to add</strong></label>
+                                    <input id="updateNumberOfKeysInput"
+                                           name="NumberOfNewKeys"
+                                           type="number"
+                                           class="form-control"
+                                           min="0"
+                                           max="10"
+                                           step="1"
+                                           value="0" />
+                                    <div id="update-number-of-keys-msg" class="mt-1 small text-danger d-none"></div>
+                                </div>
+
+                                <div class="mt-4">
+                                    <u><strong>Current Keys</strong></u>
+                                </div>
+
+                                <div class="col-12">
+                                    <div id="update-existing-key-fields" class="row g-2"></div>
+                                </div>
+
+                                <div class="mt-4">
+                                    <u><strong>New Keys</strong></u>
+                                </div>
+
+                                <div class="col-12">
+                                    <strong>
+                                        <div id="update-new-key-fields" class="row g-2"></div>
+                                    </strong>
+                                </div>
+                            </div>
+
+                            <div class="mt-3 d-flex justify-content-end gap-2">
+                                <button type="submit" class="btn btn-success btn-sm">Save</button>
+                            </div>
+
+                            <div id="update-key-msg" class="mt-2 small text-danger d-none"></div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="modal fade" id="viewKeyModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary text-white">
+                        <h6 class="modal-title">Key Information</h6>
+                        <button type="button" class="btn-close" id="btn-close-key-view" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="view-key-form">
+                            @Html.AntiForgeryToken()
+                            <div class="card-body">
+                                <div><u><strong>Building Information</strong></u></div>
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="card-body text-center">
+                                            <strong>Building:</strong><br /> <span id="view-building"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="card-body text-center">
+                                            <strong>Floor:</strong><br /> <span id="view-floor"></span>
+                                        </div>
+                                    </div><div class="col-md-4">
+                                        <div class="card-body text-center">
+                                            <strong>Room:</strong><br /> <span id="view-room"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card-body">
+                                <div class="mt-4">
+                                    <u><strong>Key Information</strong></u>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6"><strong>Key Code:</strong> <span id="view-keycode"></span></div>
+                                    <div class="col-md-6"><strong>Key Number:</strong> <span id="view-keyid"></span></div>
+                                </div>
+                            </div>
+
+                            <div class="card-body">
+                                <div class="mt-4">
+                                    <u><strong>Registered Keys</strong></u>
+                                </div>
+                                <div class="mt-3">
+                                    <div id="view-individual-keys"></div>
+                                    <div class="small text-muted mt-2">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-3 d-flex justify-content-between align-items-center">
+                                <div class="form-check mb-0">
+                                    <input class="form-check-input"
+                                           type="checkbox"
+                                           id="selectAllIndividualKeys" />
+
+                                    <label class="form-check-label" for="selectAllIndividualKeys">
+                                        Select All
+                                    </label>
+                                </div>
+
+                                <button type="button"
+                                        id="btn-delete-key"
+                                        class="btn btn-danger btn-sm"
+                                        data-id="">
+                                    Delete
+                                </button>
+                            </div>
+
+                            <div id="view-key-msg" class="mt-2 small text-danger d-none"></div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-end mb-2">
+            <button type="button" id="btn-show-add" class="btn btn-primary btn-sm">
+                Add new keys
+            </button>
+        </div>
+
+        <div class="table-responsive users-grid-wrap">
+            <table id="keysTable" class="table table-bordered table-striped users-grid-table align-middle mb-0">
+                <thead>
+                    <tr style="font-size:10px;" class="users-grid-head bg-primary">
+                        <th>Key Number</th>
+                        <th>Building</th>
+                        <th>Floor Number</th>
+                        <th>Room Number</th>
+                        <th>Total Keys</th>
+                        <th>Available Keys</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="keys-grid-body">
+                    @if (Model.Keys != null && Model.Keys.Count > 0)
+                    {
+                        foreach (var k in Model.Keys)
+                        {
+                            <tr style="font-size:10px;">
+                                <td>@k.KeyId</td>
+                                <td>@k.Building</td>
+                                <td>@k.FloorNumber</td>
+                                <td>@k.RoomNumber</td>
+                                <td>@k.TotalNoofKeys</td>
+                                <td>@k.NoofKeysAvaialble</td>
+                                <td class="text-center">
+                                    <button class="btn btn-sm btn-update-key ms-1"
+                                            style="background-color:#000000; border-color:#000000; color:#ffffff; padding:2px 8px; font-size:12px;"
+                                            data-id="@k.Id"
+                                            data-keyid="@k.KeyId"
+                                            data-building="@k.Building"
+                                            data-floor="@k.FloorNumber"
+                                            data-room="@k.RoomNumber">
+                                        Update
+                                    </button>
+                                    <button class="btn btn-sm btn-info btn-view-key"
+                                            style="background-color:#0b74ff; border-color:#0b74ff; color:#ffffff; padding:2px 8px; font-size:12px;"
+                                            data-id="@k.Id">
+                                        Details
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
